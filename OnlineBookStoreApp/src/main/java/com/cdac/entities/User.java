@@ -1,9 +1,14 @@
 package com.cdac.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,4 +41,7 @@ public class User extends BaseEntity{
 	@Enumerated(EnumType.STRING)
 	@Column(name="user_role")
 	private UserRole role;
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Order> orders = new ArrayList<>();
 }
