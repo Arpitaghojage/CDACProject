@@ -21,5 +21,4 @@ public class BaseDTO {
 	private LocalDate creationDate;
 	@JsonProperty(access =Access.READ_ONLY)
 	private LocalDateTime updatedOn;
-	
 }
