@@ -1,5 +1,11 @@
 package com.cdac.dto;
 
-public class CategoryRespDTO {
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
+public class CategoryRespDTO extends BaseDTO {
+
+	private String categoryName;
 }
