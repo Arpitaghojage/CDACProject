@@ -48,5 +48,7 @@ public class Book extends BaseEntity {
 	private List<CartItem> cartItems = new ArrayList<>(); 
 	
 	@OneToMany(mappedBy = "book",cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<OrderItem> orderItems = new ArrayList<>(); 
+	private List<OrderItem> orderItems = new ArrayList<>();
+
 }
+
