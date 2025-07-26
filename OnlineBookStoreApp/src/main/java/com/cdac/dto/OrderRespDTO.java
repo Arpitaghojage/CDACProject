@@ -10,11 +10,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 public class OrderRespDTO  extends BaseDTO{
 	
 	private LocalDate orderDate;
 	private double totalAmount;
-	private User user;
+	private Long userId;
 
 }

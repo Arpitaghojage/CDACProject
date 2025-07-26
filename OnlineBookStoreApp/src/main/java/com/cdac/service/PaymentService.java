@@ -1,14 +1,16 @@
 package com.cdac.service;
 
+import com.cdac.dto.PaymentReqDTO;
+import com.cdac.dto.PaymentRespDTO;
 import com.cdac.entities.Payment;
 
 import java.util.List;
 
 public interface PaymentService {
 
-    Payment createPayment(Payment payment);
-    Payment getPaymentById(Long id);
-    List<Payment> getAllPayments();
+    PaymentRespDTO createPayment(PaymentReqDTO paymentDto);
+    PaymentRespDTO getPaymentById(Long id);
+    List<PaymentRespDTO> getAllPayments();
     void deletePayment(Long id);
-    List<Payment> getPaymentsByStatus(String status);
+    List<PaymentRespDTO> getPaymentsByStatus(String status);
 }

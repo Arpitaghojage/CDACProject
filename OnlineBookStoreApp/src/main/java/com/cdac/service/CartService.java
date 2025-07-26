@@ -1,18 +1,17 @@
 package com.cdac.service;
 
+
+import com.cdac.dto.CartReqDTO;
+import com.cdac.dto.CartRespDTO;
 import com.cdac.entities.Cart;
 
 import java.util.List;
 
 public interface CartService {
 
-    List<Cart> getAllCarts();
-    Cart getCartById(Long id);
-    Cart addCart(Cart cart);
-    Cart updateCart(Cart cart);
-    Cart deleteCart(Long id);
-
-
-
-
+    List<CartRespDTO> getAllCarts();
+    CartRespDTO getCartById(Long id);
+    CartRespDTO addCart(CartReqDTO cartDto);
+    CartRespDTO updateCart(CartReqDTO cartDto);
+    void deleteCartItem(Long id);
 }
