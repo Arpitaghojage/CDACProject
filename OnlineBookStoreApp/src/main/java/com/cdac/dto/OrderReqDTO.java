@@ -8,8 +8,11 @@ import com.cdac.entities.User;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
 
-
+@Getter
+@Setter
 public class OrderReqDTO {
 
 
@@ -22,5 +25,5 @@ public class OrderReqDTO {
 	private double totalAmount;
 	
     @NotNull(message = "User is required")
-	private User user;
+	private Long userId;
 }

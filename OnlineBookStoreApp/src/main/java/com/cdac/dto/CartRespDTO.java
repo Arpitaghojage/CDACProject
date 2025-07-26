@@ -1,8 +1,7 @@
 package com.cdac.dto;
 
-import com.cdac.entities.Book;
 import com.cdac.entities.Cart;
-
+import com.cdac.entities.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +11,7 @@ public class CartRespDTO extends BaseDTO {
 
 	 private int qty;
 	 private Double price;
-	 private Book book;
+	 private User user;
 	 private Cart cart;
+
 }

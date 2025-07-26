@@ -1,16 +1,18 @@
 package com.cdac.service;
 
+import com.cdac.dto.BookReqDTO;
+import com.cdac.dto.BookRespDTO;
 import com.cdac.entities.Book;
 
 import java.util.List;
 
 public interface BookService {
 
-    List<Book> getAllBooks();
-    Book getBookById(Long id);
-    Book saveBook(Book book);
+    List<BookRespDTO> getAllBooks();
+    BookRespDTO getBookById(Long id);
+    BookRespDTO saveBook(BookReqDTO bookDto);
     void deleteBook(Long id);
-    List<Book>getBookByCategoryId(Long categoryId);
-    List<Book>getBookByAuthor(String author);
-    List<Book>searchBookByTitle(String title);
+    List<BookRespDTO>getBookByCategoryId(Long categoryId);
+    List<BookRespDTO>getBookByAuthor(String author);
+    List<BookRespDTO>searchBookByTitle(String title);
 }
