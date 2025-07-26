@@ -19,10 +19,10 @@ public class CartItemReqDTO {
 	    private Double price;
 
 	    @NotNull(message = "Book ID must not be null")
-		private Book book;
+		private Long bookId;
 
 	    @NotNull(message = "Cart ID must not be null")
-	    private Cart cart;
+	    private Long cartId;
 
 	
 }

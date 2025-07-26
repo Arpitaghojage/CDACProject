@@ -30,5 +30,5 @@ public class PaymentReqDTO {
     private PaymentStatus status;
 
     @NotNull(message = "Order reference is required")
-    private Order order;
+    private Long orderId;
 }

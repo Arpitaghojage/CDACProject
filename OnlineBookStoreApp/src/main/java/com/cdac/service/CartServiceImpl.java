@@ -42,8 +42,8 @@ public class CartServiceImpl  implements CartService{
 
     @Override
     public CartRespDTO addCart(CartReqDTO cartDto) {
-        User user = userRepository.findById(cartDto.getUser().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + cartDto.getUser().getId()));
+        User user = userRepository.findById(cartDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + cartDto.getUserId()));
 
         Cart cart = new Cart();
         cart.setUser(user);
@@ -54,11 +54,11 @@ public class CartServiceImpl  implements CartService{
 
     @Override
     public CartRespDTO updateCart(CartReqDTO cartDto) {
-        Cart existing = cartRepository.findById(cartDto.getCart().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with ID: " + cartDto.getCart().getId()));
+        Cart existing = cartRepository.findById(cartDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with ID: " + cartDto.getUserId()));
 
-        User user = userRepository.findById(cartDto.getUser().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + cartDto.getUser().getId()));
+        User user = userRepository.findById(cartDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + cartDto.getUserId()));
 
         existing.setUser(user);
 

@@ -44,16 +44,17 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public CartItemRespDTO saveItem(CartItemReqDTO cartItemDto) {
-        Cart cart = cartRepository.findById(cartItemDto.getCart().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with ID: " + cartItemDto.getCart().getId()));
+        Cart cart = cartRepository.findById(cartItemDto.getCartId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with ID: " + cartItemDto.getCartId()));
 
-        Book book = bookRepository.findById(cartItemDto.getBook().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + cartItemDto.getBook().getId()));
+        Book book = bookRepository.findById(cartItemDto.getBookId())
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + cartItemDto.getBookId()));
 
         CartItem cartItem = new CartItem();
         cartItem.setCart(cart);
         cartItem.setBook(book);
         cartItem.setQty(cartItemDto.getQty());
+        cartItem.setPrice(cartItemDto.getPrice());
 
         CartItem saved = cartItemRepository.save(cartItem);
         return modelMapper.map(saved, CartItemRespDTO.class);
@@ -61,11 +62,11 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     public CartItemRespDTO updateCartItem(CartItemReqDTO cartItemDto) {
-        CartItem existing = cartItemRepository.findById(cartItemDto.getCart().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("CartItem not found with ID: " + cartItemDto.getCart().getId()));
+        CartItem existing = cartItemRepository.findById(cartItemDto.getCartId())
+                .orElseThrow(() -> new ResourceNotFoundException("CartItem not found with ID: " + cartItemDto.getCartId()));
 
-        Book book = bookRepository.findById(cartItemDto.getBook().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + cartItemDto.getBook().getId()));
+        Book book = bookRepository.findById(cartItemDto.getBookId())
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + cartItemDto.getBookId()));
 
         existing.setBook(book);
         existing.setQty(cartItemDto.getQty());
