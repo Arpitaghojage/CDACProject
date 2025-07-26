@@ -29,8 +29,8 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = modelMapper.map(paymentDto, Payment.class);
 
         // Get order from orderId
-        Order order = orderRepository.findById(paymentDto.getOrder().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + paymentDto.getOrder().getId()));
+        Order order = orderRepository.findById(paymentDto.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + paymentDto.getOrderId()));
 
         payment.setOrder(order);
         Payment saved = paymentRepository.save(payment);

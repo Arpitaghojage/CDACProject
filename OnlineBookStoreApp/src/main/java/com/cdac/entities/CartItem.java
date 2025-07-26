@@ -23,8 +23,8 @@ public class CartItem extends BaseEntity{
 
 	@Column(name="Quantity")
 	private int qty;
-	
-	@Min(1)
+
+	@Min(value = 1, message = "Price must be greater than or equal to 1")
 	private double price;
 	
 	@ManyToOne

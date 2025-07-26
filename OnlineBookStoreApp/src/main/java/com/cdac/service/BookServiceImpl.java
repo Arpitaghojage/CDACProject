@@ -43,8 +43,8 @@ public class BookServiceImpl  implements BookService {
     @Override
     public BookRespDTO saveBook(BookReqDTO bookDto) {
         Book book = modelMapper.map(bookDto, Book.class);
-        Category category = categoryRepository.findById(bookDto.getCategory().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id : "+bookDto.getCategory().getId()));
+        Category category = categoryRepository.findById(bookDto.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id : "+bookDto.getCategoryId()));
         book.setCategory(category);
         Book savedBook = bookRepository.save(book);
         return modelMapper.map(savedBook, BookRespDTO.class);

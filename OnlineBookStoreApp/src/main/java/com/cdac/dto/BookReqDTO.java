@@ -33,6 +33,6 @@ public class BookReqDTO {
 	private String imageUrl;
     
     @NotNull
-    private Category category;
+    private Long categoryId;
 	
 }

@@ -3,9 +3,11 @@ package com.cdac.service;
 import com.cdac.custom_exception.ResourceNotFoundException;
 import com.cdac.dto.OrderItemReqDTO;
 import com.cdac.dto.OrderItemRespDTO;
+import com.cdac.entities.Book;
 import com.cdac.entities.Order;
 import com.cdac.entities.OrderItem;
 import com.cdac.entities.User;
+import com.cdac.repository.BookRepository;
 import com.cdac.repository.OrderItemRepository;
 import com.cdac.repository.OrderRepository;
 import com.cdac.repository.UserRepository;
@@ -24,6 +26,7 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
+    private final BookRepository bookRepository;
     private ModelMapper modelMapper;
 
     @Override
@@ -43,10 +46,14 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public OrderItemRespDTO saveOrderItem(OrderItemReqDTO orderItemDto) {
-        Order order = orderRepository.findById(orderItemDto.getOrder().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderItemDto.getOrder().getId()));
+        Book book = bookRepository.findById(orderItemDto.getBookId())
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + orderItemDto.getBookId()));
+
+        Order order = orderRepository.findById(orderItemDto.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderItemDto.getOrderId()));
 
         OrderItem item = modelMapper.map(orderItemDto, OrderItem.class);
+        item.setBook(book);
         item.setOrder(order);
         OrderItem saved = orderItemRepository.save(item);
 

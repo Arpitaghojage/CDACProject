@@ -3,6 +3,7 @@ package com.cdac.entities;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,9 +46,11 @@ public class Book extends BaseEntity {
 	private Category category;
 	
 	@OneToMany(mappedBy = "book",cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonIgnore
 	private List<CartItem> cartItems = new ArrayList<>(); 
 	
 	@OneToMany(mappedBy = "book",cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonIgnore
 	private List<OrderItem> orderItems = new ArrayList<>();
 
 }

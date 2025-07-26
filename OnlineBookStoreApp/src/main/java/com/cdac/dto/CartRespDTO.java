@@ -9,9 +9,6 @@ import lombok.Setter;
 @Setter
 public class CartRespDTO extends BaseDTO {
 
-	 private int qty;
-	 private Double price;
 	 private User user;
-	 private Cart cart;
 
 }

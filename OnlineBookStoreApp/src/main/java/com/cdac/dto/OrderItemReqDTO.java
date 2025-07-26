@@ -21,8 +21,8 @@ public class OrderItemReqDTO {
 	private double price;
 	
     @NotNull(message = "Book ID is required")
-	private Book book;
+	private Long bookId;
 	
     @NotNull(message = "Order ID is required")
-	private Order order;
+	private Long orderId;
 }
