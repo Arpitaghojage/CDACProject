@@ -1,6 +1,8 @@
 package com.cdac.service;
 
+import com.cdac.custom_exception.ApiException;
 import com.cdac.custom_exception.ResourceNotFoundException;
+import com.cdac.dto.SignUpDTOReqDTO;
 import com.cdac.dto.UserReqDTO;
 import com.cdac.dto.UserRespDTO;
 import com.cdac.entities.User;
@@ -8,6 +10,7 @@ import com.cdac.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +23,20 @@ public class UserServiceImpl  implements  UserService {
 
     private final UserRepository userRepository;
     private ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
+
+
+    @Override
+    public UserRespDTO signUp(SignUpDTOReqDTO dto) {
+        if (userRepository.existsByEmail(dto.email))
+            throw new ApiException("Duplicate Email detected - User exists already!!!!");
+
+        User entity = modelMapper.map(dto, User.class);
+        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+
+        return modelMapper.map(userRepository.save(entity), UserRespDTO.class);
+    }
+
 
     @Override
     public List<UserRespDTO> getAllUsers() {
