@@ -2,11 +2,8 @@ package com.cdac.dto;
 
 import com.cdac.entities.UserRole;
 import jakarta.validation.constraints.*;
-import org.hibernate.validator.constraints.Range;
 
-import java.time.LocalDate;
-
-public class SignUpDTOReqDTO {
+public class SignupReqDTO {
 
     @NotBlank(message = "first name must be supplied")
     private String UserName;

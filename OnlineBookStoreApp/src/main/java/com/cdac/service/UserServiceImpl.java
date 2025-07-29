@@ -2,7 +2,7 @@ package com.cdac.service;
 
 import com.cdac.custom_exception.ApiException;
 import com.cdac.custom_exception.ResourceNotFoundException;
-import com.cdac.dto.SignUpDTOReqDTO;
+import com.cdac.dto.SignupReqDTO;
 import com.cdac.dto.UserReqDTO;
 import com.cdac.dto.UserRespDTO;
 import com.cdac.entities.User;
@@ -27,16 +27,14 @@ public class UserServiceImpl  implements  UserService {
 
 
     @Override
-    public UserRespDTO signUp(SignUpDTOReqDTO dto) {
-        if (userRepository.existsByEmail(dto.email))
-            throw new ApiException("Duplicate Email detected - User exists already!!!!");
+    public UserRespDTO signUp(SignupReqDTO dto) {
+         if(userRepository.existsByEmail(dto.email))
+             throw new ApiException("Duplicate Email detected - User already exists !!!");
 
-        User entity = modelMapper.map(dto, User.class);
-        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-
-        return modelMapper.map(userRepository.save(entity), UserRespDTO.class);
+         User entity = modelMapper.map(dto, User.class);
+         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+         return  modelMapper.map(userRepository.save(entity), UserRespDTO.class);
     }
-
 
     @Override
     public List<UserRespDTO> getAllUsers() {
