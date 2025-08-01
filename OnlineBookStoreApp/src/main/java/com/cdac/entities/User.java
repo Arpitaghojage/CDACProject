@@ -40,7 +40,7 @@ public class User extends BaseEntity implements UserDetails {
 	@Column(length=25, unique=true)
 	private String email;
 	
-	@Column(length=25, nullable=false)
+	@Column(length=100, nullable=false)
 	private String password;
 	
 	@Enumerated(EnumType.STRING)
@@ -54,13 +54,11 @@ public class User extends BaseEntity implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
 		return List.of(new SimpleGrantedAuthority(this.userName));
 	}
 
 	@Override
 	public String getUsername() {
-		// TODO Auto-generated method stub
 		return this.email;
 	}
 

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
         bearerFormat = "JWT"
 )
 
-@OpenAPIDefinition(info = @Info(title = "Food Delivery API", version = "v1.0"), security = {
+@OpenAPIDefinition(info = @Info(title = "Online Book Store", version = "v1.0"), security = {
 
         /* @SecurityRequirement(name = "basicAuth") , */
         @SecurityRequirement(name = "bearerAuth") }
