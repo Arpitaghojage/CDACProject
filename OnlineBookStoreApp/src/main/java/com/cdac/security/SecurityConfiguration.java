@@ -35,11 +35,11 @@ public class SecurityConfiguration {
 
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/restaurants").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/books").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/restaurants/{id}").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET, "/books/{id}").hasRole("CUSTOMER")
 
-                        .requestMatchers(HttpMethod.PUT, "/restaurants/{id}").hasRole("ADMIN").anyRequest().authenticated());
+                        .requestMatchers(HttpMethod.PUT, "/books/{id}").hasRole("ADMIN").anyRequest().authenticated());
 
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
