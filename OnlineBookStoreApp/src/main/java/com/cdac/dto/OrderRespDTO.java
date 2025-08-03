@@ -2,8 +2,6 @@ package com.cdac.dto;
 
 import java.time.LocalDate;
 
-import com.cdac.entities.User;
-
 import lombok.Getter;
 import lombok.Setter;
 

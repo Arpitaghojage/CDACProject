@@ -26,15 +26,31 @@ public class UserServiceImpl  implements  UserService {
     private final PasswordEncoder passwordEncoder;
 
 
-    @Override
-    public UserRespDTO signUp(SignupReqDTO dto) {
-         if(userRepository.existsByEmail(dto.email))
-             throw new ApiException("Duplicate Email detected - User already exists !!!");
-
-         User entity = modelMapper.map(dto, User.class);
-         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-         return  modelMapper.map(userRepository.save(entity), UserRespDTO.class);
+@Override
+public UserRespDTO signUp(SignupReqDTO dto) {
+    if (userRepository.existsByEmail(dto.getEmail())) {
+        throw new ApiException("Duplicate Email detected - User already exists !!!");
     }
+
+    User entity = modelMapper.map(dto, User.class);
+    entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+    entity.setRole(dto.getUserRole());
+
+    User saved = userRepository.save(entity);
+
+    // ✅ Manual mapping ensures all fields are included
+    UserRespDTO resp = new UserRespDTO();
+    resp.setId(saved.getId());
+    resp.setUserName(saved.getUsername());            // ✅ This will now NOT be null
+    resp.setFullName(saved.getFullName());
+    resp.setEmail(saved.getEmail());
+    resp.setRole(saved.getRole());
+    resp.setPassword(saved.getPassword());
+
+    return resp;
+}
+
+
 
     @Override
     public List<UserRespDTO> getAllUsers() {

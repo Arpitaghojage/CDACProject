@@ -1,7 +1,6 @@
 package com.cdac.repository;
 
 import com.cdac.entities.Cart;
-import com.cdac.entities.CartItem;
 import com.cdac.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

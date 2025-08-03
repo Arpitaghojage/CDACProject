@@ -2,7 +2,6 @@ package com.cdac.service;
 
 import com.cdac.dto.BookReqDTO;
 import com.cdac.dto.BookRespDTO;
-import com.cdac.entities.Book;
 
 import java.util.List;
 

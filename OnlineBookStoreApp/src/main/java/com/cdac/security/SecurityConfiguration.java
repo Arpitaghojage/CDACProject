@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,7 +25,7 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(request ->
 
@@ -38,6 +39,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/books").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/books/{id}").hasRole("CUSTOMER")
+
+                        .requestMatchers(HttpMethod.POST, "/books/add-with-image").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.PUT, "/books/{id}").hasRole("ADMIN").anyRequest().authenticated());
 

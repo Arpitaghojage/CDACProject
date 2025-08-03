@@ -2,8 +2,6 @@ package com.cdac.service;
 
 import com.cdac.dto.OrderReqDTO;
 import com.cdac.dto.OrderRespDTO;
-import com.cdac.entities.Order;
-import com.cdac.entities.OrderItem;
 
 import java.util.List;
 

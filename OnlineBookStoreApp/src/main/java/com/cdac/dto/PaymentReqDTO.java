@@ -1,12 +1,10 @@
 package com.cdac.dto;
 
-import com.cdac.entities.Order;
 import com.cdac.entities.PaymentMethod;
 import com.cdac.entities.PaymentStatus;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
