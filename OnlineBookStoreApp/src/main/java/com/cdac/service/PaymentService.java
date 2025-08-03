@@ -2,7 +2,6 @@ package com.cdac.service;
 
 import com.cdac.dto.PaymentReqDTO;
 import com.cdac.dto.PaymentRespDTO;
-import com.cdac.entities.Payment;
 
 import java.util.List;
 

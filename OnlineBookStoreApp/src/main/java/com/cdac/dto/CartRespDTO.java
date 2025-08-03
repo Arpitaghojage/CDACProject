@@ -1,6 +1,5 @@
 package com.cdac.dto;
 
-import com.cdac.entities.Cart;
 import com.cdac.entities.User;
 import lombok.Getter;
 import lombok.Setter;

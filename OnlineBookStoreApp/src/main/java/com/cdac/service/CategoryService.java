@@ -2,7 +2,6 @@ package com.cdac.service;
 
 import com.cdac.dto.CategoryReqDTO;
 import com.cdac.dto.CategoryRespDTO;
-import com.cdac.entities.Category;
 
 import java.util.List;
 

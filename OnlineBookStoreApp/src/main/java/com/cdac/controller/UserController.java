@@ -2,7 +2,6 @@ package com.cdac.controller;
 
 import com.cdac.dto.UserReqDTO;
 import com.cdac.dto.UserRespDTO;
-import com.cdac.entities.User;
 import com.cdac.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

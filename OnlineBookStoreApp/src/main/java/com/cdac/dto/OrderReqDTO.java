@@ -2,8 +2,6 @@ package com.cdac.dto;
 
 import java.time.LocalDate;
 
-import com.cdac.entities.User;
-
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;

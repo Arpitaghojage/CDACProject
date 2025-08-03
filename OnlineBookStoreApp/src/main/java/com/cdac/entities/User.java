@@ -54,12 +54,12 @@ public class User extends BaseEntity implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(new SimpleGrantedAuthority(this.userName));
+		return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
 	}
 
 	@Override
 	public String getUsername() {
-		return this.email;
+		return this.userName;
 	}
 
 }

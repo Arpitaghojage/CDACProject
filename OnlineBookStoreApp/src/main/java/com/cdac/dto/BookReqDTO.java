@@ -1,7 +1,5 @@
 package com.cdac.dto;
 
-import com.cdac.entities.Category;
-
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +28,7 @@ public class BookReqDTO {
 	private int stock;
 	
     @Size(max = 200, message = "Image URL can be at most 200 characters")
-	private String imageUrl;
+	private byte[] imageUrl;
     
     @NotNull
     private Long categoryId;

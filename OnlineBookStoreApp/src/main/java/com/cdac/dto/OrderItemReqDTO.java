@@ -1,8 +1,5 @@
 package com.cdac.dto;
 
-import com.cdac.entities.Book;
-import com.cdac.entities.Order;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

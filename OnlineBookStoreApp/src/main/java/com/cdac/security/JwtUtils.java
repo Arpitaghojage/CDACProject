@@ -47,6 +47,7 @@ public class JwtUtils {
         log.info("generate jwt token " + authentication);
         User userPrincipal =
                 (User) authentication.getPrincipal();
+        System.out.println(userPrincipal.getAuthorities());
         return Jwts.builder()
                 .subject((userPrincipal.getUsername()))
                 .issuedAt(new Date())
@@ -56,9 +57,12 @@ public class JwtUtils {
                 .claim("authorities",
                         getAuthoritiesInString(userPrincipal.getAuthorities()))
 
+
                 .signWith(key, Jwts.SIG.HS256)
 
                 .compact();
+
+
     }
 
 

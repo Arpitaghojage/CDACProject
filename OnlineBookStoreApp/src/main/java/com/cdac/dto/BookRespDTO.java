@@ -14,7 +14,7 @@ public class BookRespDTO extends BookReqDTO {
 	private String author;
 	private double price;
 	private int stock;
-	private String imageUrl;
+	private byte[] imageUrl;
 	private Category category;
 	
 	

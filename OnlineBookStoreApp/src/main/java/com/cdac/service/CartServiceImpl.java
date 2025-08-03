@@ -68,7 +68,7 @@ public class CartServiceImpl  implements CartService{
 
     @Override
     public void deleteCartItem(Long id) {
-        Cart cart = cartRepository.findById(id)
+        cartRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id " + id));
         cartRepository.deleteById(id);
     }
