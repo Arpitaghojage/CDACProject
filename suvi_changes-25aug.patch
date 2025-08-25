@@ -1,0 +1,1016 @@
+Subject: [PATCH] suvi changes
+---
+Index: OnlineBookStoreApp/src/main/java/com/cdac/controller/BookController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/controller/BookController.java b/OnlineBookStoreApp/src/main/java/com/cdac/controller/BookController.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/controller/BookController.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/controller/BookController.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -1,5 +1,6 @@
+ package com.cdac.controller;
+ 
++import com.cdac.dto.BookFormDTO;
+ import com.cdac.dto.BookReqDTO;
+ import com.cdac.dto.BookRespDTO;
+ import com.cdac.service.BookService;
+@@ -33,22 +34,17 @@
+         return ResponseEntity.ok(bookService.getBookById(id));
+     }
+ 
+-    @PostMapping
+-    public ResponseEntity<BookRespDTO> addBook(@RequestBody BookReqDTO bookDto) {
+-        return ResponseEntity.ok(bookService.saveBook(bookDto));
+-    }
+-
++    //AddBooK
+     @PreAuthorize("hasRole('ADMIN')")
+     @PostMapping(value = "/add-with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+-
+-    public ResponseEntity<?> addBookWithImage(
+-            @RequestPart("book") BookReqDTO bookDTO,
+-            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+-
++    public ResponseEntity<?> addBookWithImage(@ModelAttribute BookFormDTO form) {
+         try {
++            MultipartFile image = form.getImage();
++            byte[] imageBytes = null;
++
+             // Validate image if provided
+-            if (imageFile != null && !imageFile.isEmpty()) {
+-                String originalFilename = StringUtils.cleanPath(imageFile.getOriginalFilename());
++            if (image != null && !image.isEmpty()) {
++                String originalFilename = StringUtils.cleanPath(image.getOriginalFilename());
+ 
+                 if (originalFilename.contains("..")) {
+                     return ResponseEntity.badRequest().body("Invalid file path");
+@@ -61,12 +57,18 @@
+                     return ResponseEntity.badRequest().body("Only JPG, JPEG, PNG, GIF files are allowed.");
+                 }
+ 
+-                // Convert image to byte array
+-                byte[] imageBytes = imageFile.getBytes();
+-                bookDTO.setImageUrl(imageBytes);
++                imageBytes = image.getBytes();
+             }
+ 
+-            // Save the book
++            // Convert BookFormDTO to BookReqDTO
++            BookReqDTO bookDTO = new BookReqDTO();
++            bookDTO.setTitle(form.getTitle());
++            bookDTO.setAuthor(form.getAuthor());
++            bookDTO.setPrice(form.getPrice());
++            bookDTO.setStock(form.getStock());
++            bookDTO.setCategoryName(form.getCategoryName());
++            bookDTO.setImageUrl(imageBytes); // set image as byte[] for DB
++
+             BookRespDTO savedBook = bookService.saveBook(bookDTO);
+             return ResponseEntity.ok(savedBook);
+ 
+@@ -77,6 +79,55 @@
+         }
+     }
+ 
++   //UpdateBooK
++
++    @PreAuthorize("hasRole('ADMIN')")
++    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
++    public ResponseEntity<?> updateBook(
++            @PathVariable Long id,
++            @ModelAttribute BookFormDTO form) {
++        try {
++            MultipartFile image = form.getImage();
++            byte[] imageBytes = null;
++
++            if (image != null && !image.isEmpty()) {
++                String originalFilename = StringUtils.cleanPath(image.getOriginalFilename());
++
++                if (originalFilename.contains("..")) {
++                    return ResponseEntity.badRequest().body("Invalid file path");
++                }
++
++                String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
++                List<String> allowedExtensions = List.of("jpg", "jpeg", "png", "gif");
++
++                if (!allowedExtensions.contains(extension)) {
++                    return ResponseEntity.badRequest().body("Only JPG, JPEG, PNG, GIF files are allowed.");
++                }
++
++                imageBytes = image.getBytes();
++            }
++
++            BookReqDTO bookDTO = new BookReqDTO();
++            bookDTO.setTitle(form.getTitle());
++            bookDTO.setAuthor(form.getAuthor());
++            bookDTO.setPrice(form.getPrice());
++            bookDTO.setStock(form.getStock());
++            bookDTO.setCategoryName(form.getCategoryName());
++            bookDTO.setImageUrl(imageBytes);
++
++            BookRespDTO updatedBook = bookService.updateBook(id, bookDTO);
++            return ResponseEntity.ok(updatedBook);
++
++        } catch (IOException e) {
++            return ResponseEntity.badRequest().body("Error processing image: " + e.getMessage());
++        } catch (Exception e) {
++            return ResponseEntity.badRequest().body("Error updating book: " + e.getMessage());
++        }
++    }
++
++
++
++    //deleteBook
+ 
+     @DeleteMapping("/{id}")
+     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+@@ -84,9 +135,9 @@
+         return ResponseEntity.noContent().build();
+     }
+ 
+-    @GetMapping("/category/{categoryId}")
+-    public ResponseEntity<List<BookRespDTO>> getBooksByCategory(@PathVariable Long categoryId) {
+-        return ResponseEntity.ok(bookService.getBookByCategoryId(categoryId));
++    @GetMapping("/category/{categoryName}")
++    public ResponseEntity<List<BookRespDTO>> getBooksByCategory(@PathVariable String categoryName) {
++        return ResponseEntity.ok(bookService.getBookByCategoryName(categoryName));
+     }
+ 
+     @GetMapping("/author")
+Index: OnlineBookStoreApp/src/main/java/com/cdac/controller/CategoryController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/controller/CategoryController.java b/OnlineBookStoreApp/src/main/java/com/cdac/controller/CategoryController.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/controller/CategoryController.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/controller/CategoryController.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -23,9 +23,9 @@
+         return ResponseEntity.ok(categoryService.getAllCategories());
+     }
+ 
+-    @GetMapping("/{id}")
+-    public ResponseEntity<CategoryRespDTO> getCategoryById(@PathVariable Long id) {
+-        return ResponseEntity.ok(categoryService.getCategoryById(id));
++    @GetMapping("/{categoryName}")
++    public ResponseEntity<CategoryRespDTO> getCategoryName(@PathVariable String categoryName) {
++        return ResponseEntity.ok(categoryService.getCategoryName(categoryName));
+     }
+ 
+     @PostMapping
+@@ -33,9 +33,9 @@
+         return ResponseEntity.ok(categoryService.saveCategory(categoryDto));
+     }
+ 
+-    @DeleteMapping("/{id}")
+-    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
+-        categoryService.deleteCategory(id);
++    @DeleteMapping("/{categoryName}")
++    public ResponseEntity<String> deleteCategory(@PathVariable String categoryName) {
++        categoryService.deleteCategory(categoryName);
+         return ResponseEntity.ok("Category deleted successfully");
+     }
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/controller/PaymentController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/controller/PaymentController.java b/OnlineBookStoreApp/src/main/java/com/cdac/controller/PaymentController.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/controller/PaymentController.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/controller/PaymentController.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -19,34 +19,45 @@
+ 
+     private final PaymentService paymentService;
+ 
+-    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can create
++    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
+     @PostMapping
+     public ResponseEntity<PaymentRespDTO> createPayment(@RequestBody PaymentReqDTO paymentDto) {
+         return ResponseEntity.ok(paymentService.createPayment(paymentDto));
+     }
+ 
+-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
++    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
+     @GetMapping("/{id}")
+     public ResponseEntity<PaymentRespDTO> getPaymentById(@PathVariable Long id) {
+         return ResponseEntity.ok(paymentService.getPaymentById(id));
+     }
+ 
+-    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can view all
++    @PreAuthorize("hasRole('ADMIN')")
+     @GetMapping
+     public ResponseEntity<List<PaymentRespDTO>> getAllPayments() {
+         return ResponseEntity.ok(paymentService.getAllPayments());
+     }
+ 
+-    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can delete
++    @PreAuthorize("hasRole('ADMIN')")
+     @DeleteMapping("/{id}")
+     public ResponseEntity<String> deletePayment(@PathVariable Long id) {
+         paymentService.deletePayment(id);
+         return ResponseEntity.ok("Payment deleted successfully.");
+     }
+ 
+-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
++    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
+     @GetMapping("/status/{status}")
+     public ResponseEntity<List<PaymentRespDTO>> getPaymentsByStatus(@PathVariable String status) {
+         return ResponseEntity.ok(paymentService.getPaymentsByStatus(status));
+     }
++
++    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
++    @PostMapping("/razorpay-order")
++    public ResponseEntity<String> createRazorpayOrder(@RequestParam double amount, @RequestParam String currency, @RequestParam String receipt) {
++        try {
++            String order = paymentService.createRazorpayOrder(amount, currency, receipt);
++            return ResponseEntity.ok(order);
++        } catch (Exception e) {
++            return ResponseEntity.status(500).body("Error creating Razorpay order: " + e.getMessage());
++        }
++    }
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/dto/BookFormDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookFormDTO.java b/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookFormDTO.java
+new file mode 100644
+--- /dev/null	(revision 70123a5682cf316505d298488e805bc4eecb8843)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookFormDTO.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -0,0 +1,18 @@
++package com.cdac.dto;
++
++import lombok.Getter;
++import lombok.Setter;
++import org.springframework.web.multipart.MultipartFile;
++
++@Getter
++@Setter
++public class BookFormDTO {
++
++    private String title;
++    private String author;
++    private double price;
++    private int stock;
++    private String categoryName;
++
++    private MultipartFile image; // Not byte[], because we're receiving the file from form
++}
+Index: OnlineBookStoreApp/src/main/java/com/cdac/dto/BookReqDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookReqDTO.java b/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookReqDTO.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookReqDTO.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookReqDTO.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -31,6 +31,6 @@
+ 	private byte[] imageUrl;
+     
+     @NotNull
+-    private Long categoryId;
++    private String categoryName;
+ 	
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/dto/BookRespDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookRespDTO.java b/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookRespDTO.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookRespDTO.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/dto/BookRespDTO.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -1,21 +1,17 @@
+ package com.cdac.dto;
+ 
+-
+ import com.cdac.entities.Category;
+-
+ import lombok.Getter;
+ import lombok.Setter;
+ 
+ @Getter
+ @Setter
+-public class BookRespDTO extends BookReqDTO {
+-
+-	private String title;
+-	private String author;
+-	private double price;
+-	private int stock;
+-	private byte[] imageUrl;
+-	private Category category;
+-	
+-	
++public class BookRespDTO {
++    private Long id;
++    private String title;
++    private String author;
++    private double price;
++    private int stock;
++    private String imageUrl; // base64 string
++    private Category category;
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/dto/SignupReqDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/dto/SignupReqDTO.java b/OnlineBookStoreApp/src/main/java/com/cdac/dto/SignupReqDTO.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/dto/SignupReqDTO.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/dto/SignupReqDTO.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -22,6 +22,10 @@
+     @Email(message = "Invalid email format")
+     public String email;
+ 
++    @NotBlank(message = "Mobile number is required")
++    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Please provide a valid 10-digit mobile number")
++    private String mobileNumber;
++
+ 
+     @NotBlank
+     @Pattern(regexp="((?=.*\\d)(?=.*[a-z])(?=.*[#@$*]).{5,20})",message = "Invalid password format")
+Index: OnlineBookStoreApp/src/main/java/com/cdac/dto/UserRespDTO.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/dto/UserRespDTO.java b/OnlineBookStoreApp/src/main/java/com/cdac/dto/UserRespDTO.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/dto/UserRespDTO.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/dto/UserRespDTO.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -12,6 +12,7 @@
+ 	private String userName;
+ 	private String fullName;
+ 	private String email;
++	private String mobileNumber;
+ 	private String password;
+ 	private UserRole role;
+ 
+Index: OnlineBookStoreApp/src/main/java/com/cdac/entities/Book.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/entities/Book.java b/OnlineBookStoreApp/src/main/java/com/cdac/entities/Book.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/entities/Book.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/entities/Book.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -21,10 +21,10 @@
+ @ToString
+ public class Book extends BaseEntity {
+ 
+-	@Column(length=25)
++	@Column(length=100)
+ 	private String title;
+ 	
+-	@Column(length=25)
++	@Column(length=100)
+ 	private String author;
+ 	
+ 	@Min(1)
+@@ -32,8 +32,10 @@
+ 	
+ 	private int stock;
+ 
++	@Column(length=255)
++	private String imagePath;
++	
+ 	@Lob
+-	@Column(name = "image_url", columnDefinition = "LONGBLOB")
+ 	private byte[] imageUrl;
+ 	
+ 	@ManyToOne
+Index: OnlineBookStoreApp/src/main/java/com/cdac/entities/User.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/entities/User.java b/OnlineBookStoreApp/src/main/java/com/cdac/entities/User.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/entities/User.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/entities/User.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -34,18 +34,21 @@
+ 	@Column(name="user_name", length=25)
+ 	private String userName;
+ 	
+-	@Column(name="full_name", length=25)
++	@Column(name="full_name", length=50)
+ 	private String fullName;
+ 	
+-	@Column(length=25, unique=true)
++	@Column(length=100, unique=true)
+ 	private String email;
+ 	
+ 	@Column(length=100, nullable=false)
+ 	private String password;
+-	
+-	@Enumerated(EnumType.STRING)
+-	@Column(name="user_role")
+-	private UserRole role;
++
++    @Column(nullable = false)
++    private String mobileNumber;
++
++    @Enumerated(EnumType.STRING)
++    @Column(name="user_role", nullable = false)
++    private UserRole userRole;
+ 	
+ 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+ 	@JsonIgnore
+@@ -54,7 +57,7 @@
+ 
+ 	@Override
+ 	public Collection<? extends GrantedAuthority> getAuthorities() {
+-		return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
++		return List.of(new SimpleGrantedAuthority("ROLE_" + this.userRole.name()));
+ 	}
+ 
+ 	@Override
+Index: OnlineBookStoreApp/src/main/java/com/cdac/entities/UserRole.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/entities/UserRole.java b/OnlineBookStoreApp/src/main/java/com/cdac/entities/UserRole.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/entities/UserRole.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/entities/UserRole.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -4,4 +4,5 @@
+ 
+ 	CUSTOMER,
+ 	ADMIN
++
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/exception_handler/GlobalExceptionHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/exception_handler/GlobalExceptionHandler.java b/OnlineBookStoreApp/src/main/java/com/cdac/exception_handler/GlobalExceptionHandler.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/exception_handler/GlobalExceptionHandler.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/exception_handler/GlobalExceptionHandler.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -10,6 +10,8 @@
+ import org.springframework.web.bind.MethodArgumentNotValidException;
+ import org.springframework.web.bind.annotation.ExceptionHandler;
+ import org.springframework.web.bind.annotation.RestControllerAdvice;
++import org.springframework.security.authentication.BadCredentialsException;
++import org.springframework.security.core.userdetails.UsernameNotFoundException;
+ 
+ import com.cdac.custom_exception.InvalidInputException;
+ import com.cdac.custom_exception.ResourceNotFoundException;
+@@ -41,6 +43,13 @@
+ 				.body(new ApiResponse(e.getMessage()));
+ 	}
+ 
++    // authentication failures -> 401
++    @ExceptionHandler({BadCredentialsException.class, UsernameNotFoundException.class})
++    public ResponseEntity<?> handleAuthExceptions(Exception e) {
++        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
++                .body(new ApiResponse("Invalid email or password"));
++    }
++
+ 	// add exception handling method - to handle method arg not valid exc
+ 	@ExceptionHandler(MethodArgumentNotValidException.class)
+ 	public ResponseEntity<?> handleInvalidInputException(MethodArgumentNotValidException e) {
+Index: OnlineBookStoreApp/src/main/java/com/cdac/repository/BookRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/repository/BookRepository.java b/OnlineBookStoreApp/src/main/java/com/cdac/repository/BookRepository.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/repository/BookRepository.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/repository/BookRepository.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -7,7 +7,7 @@
+ 
+ public interface BookRepository extends JpaRepository <Book, Long> {
+ 
+-    List<Book> findByCategoryId(Long categoryId);
++    List<Book> findByCategoryCategoryName(String CategoryName);
+     List<Book> findByAuthorContainingIgnoreCase(String author);
+     List<Book> findByTitleContainingIgnoreCase(String title);
+ 
+Index: OnlineBookStoreApp/src/main/java/com/cdac/repository/CategoryRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/repository/CategoryRepository.java b/OnlineBookStoreApp/src/main/java/com/cdac/repository/CategoryRepository.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/repository/CategoryRepository.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/repository/CategoryRepository.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -7,6 +7,6 @@
+ 
+ public interface CategoryRepository extends JpaRepository<Category,Long> {
+ 
+-    Optional<Category> findByCategoryNameContainingIgnoreCase(String name);
+-    boolean existsByCategoryNameContainingIgnoreCase(String name);
++    Optional<Category> findByCategoryName(String CategoryName);
++    boolean existsByCategoryName(String name);
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/repository/UserRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/repository/UserRepository.java b/OnlineBookStoreApp/src/main/java/com/cdac/repository/UserRepository.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/repository/UserRepository.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/repository/UserRepository.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -8,5 +8,8 @@
+ public interface UserRepository extends JpaRepository<User,Long> {
+ 
+     Optional<User> findByEmail(String email);
++    
++    Optional<User> findByMobileNumber(String mobileNumber);
++
+     boolean existsByEmail(String email);
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/security/CustomJwtFilter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/security/CustomJwtFilter.java b/OnlineBookStoreApp/src/main/java/com/cdac/security/CustomJwtFilter.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/security/CustomJwtFilter.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/security/CustomJwtFilter.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -28,20 +28,15 @@
+ 
+         String headerValue = request.getHeader("Authorization");
+         if (headerValue != null && headerValue.startsWith("Bearer ")) {
+-
+             String jwt = headerValue.substring(7);
+-            log.info("JWT in request header {} ", jwt);
+-
+-            Authentication authentication =
+-                    jwtUtils.populateAuthenticationTokenFromJWT(jwt);
+-
+-            log.info("auth object from JWT {} ", authentication);
+-            log.info("is auth : {}", authentication.isAuthenticated());//true
+-
+-            SecurityContextHolder
+-                    .getContext()
+-                    .setAuthentication(authentication);
+-
++            try {
++                Authentication authentication = jwtUtils.populateAuthenticationTokenFromJWT(jwt);
++                SecurityContextHolder.getContext().setAuthentication(authentication);
++            } catch (RuntimeException ex) {
++                // Invalid/expired token: ignore and continue without authentication
++                log.warn("Ignoring invalid JWT: {}", ex.getMessage());
++                SecurityContextHolder.clearContext();
++            }
+         }
+ 
+         filterChain.doFilter(request, response);
+Index: OnlineBookStoreApp/src/main/java/com/cdac/security/JwtUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/security/JwtUtils.java b/OnlineBookStoreApp/src/main/java/com/cdac/security/JwtUtils.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/security/JwtUtils.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/security/JwtUtils.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -49,13 +49,15 @@
+                 (User) authentication.getPrincipal();
+         System.out.println(userPrincipal.getAuthorities());
+         return Jwts.builder()
+-                .subject((userPrincipal.getUsername()))
++                // Use email as JWT subject for reliable lookup
++                .subject(userPrincipal.getEmail())
+                 .issuedAt(new Date())
+                 .expiration(new Date((new Date()).getTime()
+                         + jwtExpirationMs))
+ 
+-                .claim("authorities",
+-                        getAuthoritiesInString(userPrincipal.getAuthorities()))
++                .claim("authorities", getAuthoritiesInString(userPrincipal.getAuthorities()))
++                .claim("userId", userPrincipal.getId())
++                .claim("userName", userPrincipal.getUsername())
+ 
+ 
+                 .signWith(key, Jwts.SIG.HS256)
+Index: OnlineBookStoreApp/src/main/java/com/cdac/security/SecurityConfiguration.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/security/SecurityConfiguration.java b/OnlineBookStoreApp/src/main/java/com/cdac/security/SecurityConfiguration.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/security/SecurityConfiguration.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/security/SecurityConfiguration.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -7,11 +7,11 @@
+ import org.springframework.security.authentication.AuthenticationManager;
+ import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+ import org.springframework.security.config.http.SessionCreationPolicy;
+ import org.springframework.security.crypto.password.PasswordEncoder;
+ import org.springframework.security.web.SecurityFilterChain;
+ import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
++import org.springframework.web.cors.CorsConfigurationSource;
+ 
+ @AllArgsConstructor
+ @Configuration
+@@ -20,17 +20,19 @@
+     private final PasswordEncoder encoder;
+     private final CustomJwtFilter customJwtFilter;
+     private final JwtAuthEntryPoint jwtAuthEntryPoint;
++    private final CorsConfigurationSource corsConfigurationSource;
+ 
+ 
+     @Bean
+     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+ 
+-        http.csrf(AbstractHttpConfigurer::disable);
++        http.csrf(csrf -> csrf.disable());
++        http.cors(cors -> cors.configurationSource(corsConfigurationSource));
+ 
+         http.authorizeHttpRequests(request ->
+ 
+                 request.requestMatchers("/swagger-ui/**", "/v**/api-docs/**"
+-                                , "/users/signin", "/users/signup").permitAll()
++                                , "/users/signin", "/users/signup", "/api/sample/**").permitAll()
+ 
+                         .requestMatchers("/error").permitAll()
+ 
+@@ -42,7 +44,18 @@
+ 
+                         .requestMatchers(HttpMethod.POST, "/books/add-with-image").hasRole("ADMIN")
+ 
+-                        .requestMatchers(HttpMethod.PUT, "/books/{id}").hasRole("ADMIN").anyRequest().authenticated());
++                        .requestMatchers(HttpMethod.PUT, "/books/{id}").hasRole("ADMIN")
++
++                        .requestMatchers(HttpMethod.DELETE, "/books/{id}").hasRole("ADMIN")
++
++                        .requestMatchers(HttpMethod.PUT, "/books/{id}").hasRole("ADMIN")
++                        
++                        .requestMatchers("/auth/forgot-password", "/auth/reset-password").permitAll()
++                        
++                        .anyRequest().authenticated());
++
++
++
+ 
+ 
+         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/BookService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/BookService.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/BookService.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/BookService.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/BookService.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -11,7 +11,10 @@
+     BookRespDTO getBookById(Long id);
+     BookRespDTO saveBook(BookReqDTO bookDto);
+     void deleteBook(Long id);
+-    List<BookRespDTO>getBookByCategoryId(Long categoryId);
++    List<BookRespDTO>getBookByCategoryName(String categoryName);
+     List<BookRespDTO>getBookByAuthor(String author);
+     List<BookRespDTO>searchBookByTitle(String title);
++
++    BookRespDTO updateBook(Long id, BookReqDTO bookDto);
++
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/BookServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/BookServiceImpl.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/BookServiceImpl.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/BookServiceImpl.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/BookServiceImpl.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -14,6 +14,7 @@
+ 
+ import java.util.List;
+ import java.util.stream.Collectors;
++import java.util.Base64;
+ 
+ @Service
+ @Transactional
+@@ -29,7 +30,13 @@
+     public List<BookRespDTO> getAllBooks() {
+         return bookRepository.findAll()
+                 .stream()
+-                .map(book -> modelMapper.map(book, BookRespDTO.class))
++                .map(book -> {
++                    BookRespDTO dto = modelMapper.map(book, BookRespDTO.class);
++                    if (book.getImageUrl() != null) {
++                        dto.setImageUrl(Base64.getEncoder().encodeToString(book.getImageUrl()));
++                    }
++                    return dto;
++                })
+                 .collect(Collectors.toList());
+     }
+ 
+@@ -37,7 +44,11 @@
+     public BookRespDTO getBookById(Long id) {
+         Book book = bookRepository.findById(id)
+                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID : "+id));
+-        return modelMapper.map(book, BookRespDTO.class);
++        BookRespDTO dto = modelMapper.map(book, BookRespDTO.class);
++        if (book.getImageUrl() != null) {
++            dto.setImageUrl(Base64.getEncoder().encodeToString(book.getImageUrl()));
++        }
++        return dto;
+     }
+ 
+     @Override
+@@ -45,8 +56,8 @@
+         Book book = modelMapper.map(bookDto, Book.class);
+ 
+         // Set category
+-        Category category = categoryRepository.findById(bookDto.getCategoryId())
+-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id : " + bookDto.getCategoryId()));
++        Category category = categoryRepository.findByCategoryName(bookDto.getCategoryName())
++                .orElseThrow(() -> new ResourceNotFoundException("Category not found with Name : " + bookDto.getCategoryName()));
+         book.setCategory(category);
+ 
+         // Explicitly set image data (in case ModelMapper doesn't map byte[] well)
+@@ -56,21 +67,69 @@
+         Book savedBook = bookRepository.save(book);
+ 
+         // Convert to response DTO
+-        return modelMapper.map(savedBook, BookRespDTO.class);
++        BookRespDTO dto = modelMapper.map(savedBook, BookRespDTO.class);
++        if (savedBook.getImageUrl() != null) {
++            dto.setImageUrl(Base64.getEncoder().encodeToString(savedBook.getImageUrl()));
++        }
++        return dto;
+     }
++
++
++    @Override
++    public BookRespDTO updateBook(Long id, BookReqDTO bookDto) {
++        // Fetch the book to update
++        Book existingBook = bookRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + id));
++
++        // Fetch and set the category
++        Category category = categoryRepository.findByCategoryName(bookDto.getCategoryName())
++                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + bookDto.getCategoryName()));
++        existingBook.setCategory(category);
++
++        // Update book fields
++        existingBook.setTitle(bookDto.getTitle());
++        existingBook.setAuthor(bookDto.getAuthor());
++        existingBook.setPrice(bookDto.getPrice());
++        existingBook.setStock(bookDto.getStock());
++
++        // Only update image if it's not null
++        if (bookDto.getImageUrl() != null) {
++            existingBook.setImageUrl(bookDto.getImageUrl());
++        }
++
++        // Save and return updated book
++        Book updatedBook = bookRepository.save(existingBook);
++        BookRespDTO dto = modelMapper.map(updatedBook, BookRespDTO.class);
++        if (updatedBook.getImageUrl() != null) {
++            dto.setImageUrl(Base64.getEncoder().encodeToString(updatedBook.getImageUrl()));
++        }
++        return dto;
++    }
++
++
++
++    //deletebook
+ 
+     @Override
+     public void deleteBook(Long id) {
+         Book book = bookRepository.findById(id)
+-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID : "+id));
++                .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + id));
+         bookRepository.delete(book);
+     }
+ 
++
++
+     @Override
+-    public List<BookRespDTO> getBookByCategoryId(Long categoryId) {
+-        return bookRepository.findByCategoryId(categoryId)
++    public List<BookRespDTO> getBookByCategoryName(String categoryName) {
++        return bookRepository.findByCategoryCategoryName(categoryName)
+                 .stream()
+-                .map(book -> modelMapper.map(book, BookRespDTO.class))
++                .map(book -> {
++                    BookRespDTO dto = modelMapper.map(book, BookRespDTO.class);
++                    if (book.getImageUrl() != null) {
++                        dto.setImageUrl(Base64.getEncoder().encodeToString(book.getImageUrl()));
++                    }
++                    return dto;
++                })
+                 .collect(Collectors.toList());
+     }
+ 
+@@ -78,7 +137,13 @@
+     public List<BookRespDTO> getBookByAuthor(String author) {
+         return bookRepository.findByAuthorContainingIgnoreCase(author)
+                 .stream()
+-                .map(book -> modelMapper.map(book, BookRespDTO.class))
++                .map(book -> {
++                    BookRespDTO dto = modelMapper.map(book, BookRespDTO.class);
++                    if (book.getImageUrl() != null) {
++                        dto.setImageUrl(Base64.getEncoder().encodeToString(book.getImageUrl()));
++                    }
++                    return dto;
++                })
+                 .collect(Collectors.toList());
+     }
+ 
+@@ -86,7 +151,13 @@
+     public List<BookRespDTO> searchBookByTitle(String title) {
+         return bookRepository.findByTitleContainingIgnoreCase(title)
+                 .stream()
+-                .map(book -> modelMapper.map(book, BookRespDTO.class))
++                .map(book -> {
++                    BookRespDTO dto = modelMapper.map(book, BookRespDTO.class);
++                    if (book.getImageUrl() != null) {
++                        dto.setImageUrl(Base64.getEncoder().encodeToString(book.getImageUrl()));
++                    }
++                    return dto;
++                })
+                 .collect(Collectors.toList());
+     }
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryService.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryService.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryService.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryService.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -8,7 +8,7 @@
+ public interface CategoryService {
+ 
+     List<CategoryRespDTO>getAllCategories();
+-    CategoryRespDTO getCategoryById(Long id);
++    CategoryRespDTO getCategoryName(String categoryName);
+     CategoryRespDTO saveCategory(CategoryReqDTO categoryDto);
+-    void deleteCategory(Long id);
++    void deleteCategory(String categoryName);
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryServiceImpl.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryServiceImpl.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryServiceImpl.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/CategoryServiceImpl.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -29,10 +29,12 @@
+                 .collect(Collectors.toList());
+     }
+ 
++
++
+     @Override
+-    public CategoryRespDTO getCategoryById(Long id) {
+-        Category category =  categoryRepository.findById(id)
+-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
++    public CategoryRespDTO getCategoryName(String categoryName) {
++        Category category =  categoryRepository.findByCategoryName(categoryName)
++                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + categoryName));
+         return modelMapper.map(category, CategoryRespDTO.class);
+     }
+ 
+@@ -44,9 +46,9 @@
+     }
+ 
+     @Override
+-    public void deleteCategory(Long id) {
+-        Category category = categoryRepository.findById(id)
+-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
++    public void deleteCategory(String categoryName) {
++        Category category = categoryRepository.findByCategoryName(categoryName)
++                .orElseThrow(() -> new ResourceNotFoundException("Category not found with CName " + categoryName));
+         categoryRepository.delete(category);
+     }
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentService.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentService.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentService.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentService.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -12,4 +12,5 @@
+     List<PaymentRespDTO> getAllPayments();
+     void deletePayment(Long id);
+     List<PaymentRespDTO> getPaymentsByStatus(String status);
++    String createRazorpayOrder(double amount, String currency, String receipt) throws Exception;
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentServiceImpl.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentServiceImpl.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentServiceImpl.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/PaymentServiceImpl.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -7,9 +7,12 @@
+ import com.cdac.entities.Payment;
+ import com.cdac.repository.OrderRepository;
+ import com.cdac.repository.PaymentRepository;
++import com.razorpay.RazorpayClient;
+ import jakarta.transaction.Transactional;
+ import lombok.AllArgsConstructor;
++import org.json.JSONObject;
+ import org.modelmapper.ModelMapper;
++import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.stereotype.Service;
+ 
+ import java.util.List;
+@@ -17,12 +20,23 @@
+ 
+ @Service
+ @Transactional
+-@AllArgsConstructor
+ public class PaymentServiceImpl implements PaymentService {
+ 
+     private final PaymentRepository paymentRepository;
+     private final OrderRepository orderRepository;
+-    private ModelMapper modelMapper;
++    private final ModelMapper modelMapper;
++
++    @Value("${razorpay.key_id}")
++    private String razorpayKeyId;
++
++    @Value("${razorpay.key_secret}")
++    private String razorpayKeySecret;
++
++    public PaymentServiceImpl(PaymentRepository paymentRepository, OrderRepository orderRepository, ModelMapper modelMapper) {
++        this.paymentRepository = paymentRepository;
++        this.orderRepository = orderRepository;
++        this.modelMapper = modelMapper;
++    }
+ 
+     @Override
+     public PaymentRespDTO createPayment(PaymentReqDTO paymentDto) {
+@@ -66,4 +80,16 @@
+                 .map(payment -> modelMapper.map(payment, PaymentRespDTO.class))
+                 .collect(Collectors.toList());
+     }
++
++    @Override
++    public String createRazorpayOrder(double amount, String currency, String receipt) throws Exception {
++        RazorpayClient client = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
++        JSONObject orderRequest = new JSONObject();
++        orderRequest.put("amount", (int)(amount * 100)); // amount in paise
++        orderRequest.put("currency", currency);
++        orderRequest.put("receipt", receipt);
++        orderRequest.put("payment_capture", 1);
++        com.razorpay.Order order = client.orders.create(orderRequest);
++        return order.toString();
++    }
+ }
+Index: OnlineBookStoreApp/src/main/java/com/cdac/service/UserServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/java/com/cdac/service/UserServiceImpl.java b/OnlineBookStoreApp/src/main/java/com/cdac/service/UserServiceImpl.java
+--- a/OnlineBookStoreApp/src/main/java/com/cdac/service/UserServiceImpl.java	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/java/com/cdac/service/UserServiceImpl.java	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -34,7 +34,8 @@
+ 
+     User entity = modelMapper.map(dto, User.class);
+     entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+-    entity.setRole(dto.getUserRole());
++    entity.setUserRole(dto.getUserRole());
++    entity.setMobileNumber(dto.getMobileNumber());
+ 
+     User saved = userRepository.save(entity);
+ 
+@@ -44,7 +45,8 @@
+     resp.setUserName(saved.getUsername());            // ✅ This will now NOT be null
+     resp.setFullName(saved.getFullName());
+     resp.setEmail(saved.getEmail());
+-    resp.setRole(saved.getRole());
++    resp.setMobileNumber(saved.getMobileNumber());
++    resp.setRole(saved.getUserRole());
+     resp.setPassword(saved.getPassword());
+ 
+     return resp;
+Index: OnlineBookStoreApp/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/OnlineBookStoreApp/src/main/resources/application.properties b/OnlineBookStoreApp/src/main/resources/application.properties
+--- a/OnlineBookStoreApp/src/main/resources/application.properties	(revision ea456df557bf31802db14af9633bcc2bcc5525f2)
++++ b/OnlineBookStoreApp/src/main/resources/application.properties	(revision 70123a5682cf316505d298488e805bc4eecb8843)
+@@ -1,6 +1,6 @@
+ spring.application.name=OnlineBookStoreApp
+ #DB config
+-spring.datasource.url=jdbc:mysql://localhost:3306/BookStore
++spring.datasource.url=jdbc:mysql://localhost:3306/BookStore_db
+ spring.datasource.username=root
+ spring.datasource.password=root
+ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+@@ -22,5 +22,8 @@
+ spring.servlet.multipart.max-file-size=2MB
+ spring.servlet.multipart.max-request-size=2MB
+ 
++razorpay.key_id=rzp_test_h2lluOKhKWDtDs
++razorpay.key_secret=BqqPvbaOfgpCMkRJk6oLHeuV
++
+ 
+ 
