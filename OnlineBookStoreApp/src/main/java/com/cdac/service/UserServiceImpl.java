@@ -34,8 +34,7 @@ public UserRespDTO signUp(SignupReqDTO dto) {
 
     User entity = modelMapper.map(dto, User.class);
     entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-    entity.setUserRole(dto.getUserRole());
-    entity.setMobileNumber(dto.getMobileNumber());
+    entity.setRole(dto.getUserRole());
 
     User saved = userRepository.save(entity);
 
@@ -45,8 +44,7 @@ public UserRespDTO signUp(SignupReqDTO dto) {
     resp.setUserName(saved.getUsername());            // ✅ This will now NOT be null
     resp.setFullName(saved.getFullName());
     resp.setEmail(saved.getEmail());
-    resp.setMobileNumber(saved.getMobileNumber());
-    resp.setRole(saved.getUserRole());
+    resp.setRole(saved.getRole());
     resp.setPassword(saved.getPassword());
 
     return resp;

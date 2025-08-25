@@ -28,15 +28,20 @@ public class CustomJwtFilter extends OncePerRequestFilter {
 
         String headerValue = request.getHeader("Authorization");
         if (headerValue != null && headerValue.startsWith("Bearer ")) {
+
             String jwt = headerValue.substring(7);
-            try {
-                Authentication authentication = jwtUtils.populateAuthenticationTokenFromJWT(jwt);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (RuntimeException ex) {
-                // Invalid/expired token: ignore and continue without authentication
-                log.warn("Ignoring invalid JWT: {}", ex.getMessage());
-                SecurityContextHolder.clearContext();
-            }
+            log.info("JWT in request header {} ", jwt);
+
+            Authentication authentication =
+                    jwtUtils.populateAuthenticationTokenFromJWT(jwt);
+
+            log.info("auth object from JWT {} ", authentication);
+            log.info("is auth : {}", authentication.isAuthenticated());//true
+
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(authentication);
+
         }
 
         filterChain.doFilter(request, response);

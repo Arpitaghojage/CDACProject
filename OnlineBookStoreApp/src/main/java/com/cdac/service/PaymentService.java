@@ -12,5 +12,4 @@ public interface PaymentService {
     List<PaymentRespDTO> getAllPayments();
     void deletePayment(Long id);
     List<PaymentRespDTO> getPaymentsByStatus(String status);
-    String createRazorpayOrder(double amount, String currency, String receipt) throws Exception;
 }

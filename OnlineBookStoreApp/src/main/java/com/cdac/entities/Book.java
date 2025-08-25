@@ -21,10 +21,10 @@ import lombok.ToString;
 @ToString
 public class Book extends BaseEntity {
 
-	@Column(length=100)
+	@Column(length=25)
 	private String title;
 	
-	@Column(length=100)
+	@Column(length=25)
 	private String author;
 	
 	@Min(1)
@@ -32,10 +32,8 @@ public class Book extends BaseEntity {
 	
 	private int stock;
 
-	@Column(length=255)
-	private String imagePath;
-	
 	@Lob
+	@Column(name = "image_url", columnDefinition = "LONGBLOB")
 	private byte[] imageUrl;
 	
 	@ManyToOne

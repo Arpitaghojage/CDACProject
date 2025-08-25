@@ -23,9 +23,9 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
-    @GetMapping("/{categoryName}")
-    public ResponseEntity<CategoryRespDTO> getCategoryName(@PathVariable String categoryName) {
-        return ResponseEntity.ok(categoryService.getCategoryName(categoryName));
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryRespDTO> getCategoryById(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
     @PostMapping
@@ -33,9 +33,9 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.saveCategory(categoryDto));
     }
 
-    @DeleteMapping("/{categoryName}")
-    public ResponseEntity<String> deleteCategory(@PathVariable String categoryName) {
-        categoryService.deleteCategory(categoryName);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
         return ResponseEntity.ok("Category deleted successfully");
     }
 }

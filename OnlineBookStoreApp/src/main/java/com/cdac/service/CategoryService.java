@@ -8,7 +8,7 @@ import java.util.List;
 public interface CategoryService {
 
     List<CategoryRespDTO>getAllCategories();
-    CategoryRespDTO getCategoryName(String categoryName);
+    CategoryRespDTO getCategoryById(Long id);
     CategoryRespDTO saveCategory(CategoryReqDTO categoryDto);
-    void deleteCategory(String categoryName);
+    void deleteCategory(Long id);
 }

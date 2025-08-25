@@ -31,6 +31,6 @@ public class BookReqDTO {
 	private byte[] imageUrl;
     
     @NotNull
-    private String categoryName;
+    private Long categoryId;
 	
 }

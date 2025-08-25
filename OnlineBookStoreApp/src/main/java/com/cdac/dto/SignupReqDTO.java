@@ -22,10 +22,6 @@ public class SignupReqDTO {
     @Email(message = "Invalid email format")
     public String email;
 
-    @NotBlank(message = "Mobile number is required")
-    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Please provide a valid 10-digit mobile number")
-    private String mobileNumber;
-
 
     @NotBlank
     @Pattern(regexp="((?=.*\\d)(?=.*[a-z])(?=.*[#@$*]).{5,20})",message = "Invalid password format")

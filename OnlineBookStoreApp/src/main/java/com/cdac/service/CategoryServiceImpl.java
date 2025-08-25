@@ -29,12 +29,10 @@ public class CategoryServiceImpl  implements CategoryService{
                 .collect(Collectors.toList());
     }
 
-
-
     @Override
-    public CategoryRespDTO getCategoryName(String categoryName) {
-        Category category =  categoryRepository.findByCategoryName(categoryName)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + categoryName));
+    public CategoryRespDTO getCategoryById(Long id) {
+        Category category =  categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
         return modelMapper.map(category, CategoryRespDTO.class);
     }
 
@@ -46,9 +44,9 @@ public class CategoryServiceImpl  implements CategoryService{
     }
 
     @Override
-    public void deleteCategory(String categoryName) {
-        Category category = categoryRepository.findByCategoryName(categoryName)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with CName " + categoryName));
+    public void deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
         categoryRepository.delete(category);
     }
 }

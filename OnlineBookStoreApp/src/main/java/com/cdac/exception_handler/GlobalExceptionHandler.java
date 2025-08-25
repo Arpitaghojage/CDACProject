@@ -10,8 +10,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.cdac.custom_exception.InvalidInputException;
 import com.cdac.custom_exception.ResourceNotFoundException;
@@ -42,13 +40,6 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)// SC 500
 				.body(new ApiResponse(e.getMessage()));
 	}
-
-    // authentication failures -> 401
-    @ExceptionHandler({BadCredentialsException.class, UsernameNotFoundException.class})
-    public ResponseEntity<?> handleAuthExceptions(Exception e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ApiResponse("Invalid email or password"));
-    }
 
 	// add exception handling method - to handle method arg not valid exc
 	@ExceptionHandler(MethodArgumentNotValidException.class)
