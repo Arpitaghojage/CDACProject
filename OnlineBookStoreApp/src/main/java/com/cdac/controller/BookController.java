@@ -1,5 +1,6 @@
 package com.cdac.controller;
 
+import com.cdac.dto.BookFormDTO;
 import com.cdac.dto.BookReqDTO;
 import com.cdac.dto.BookRespDTO;
 import com.cdac.service.BookService;
@@ -33,22 +34,17 @@ public class BookController {
         return ResponseEntity.ok(bookService.getBookById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<BookRespDTO> addBook(@RequestBody BookReqDTO bookDto) {
-        return ResponseEntity.ok(bookService.saveBook(bookDto));
-    }
-
+    //AddBooK
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/add-with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-
-    public ResponseEntity<?> addBookWithImage(
-            @RequestPart("book") BookReqDTO bookDTO,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
-
+    public ResponseEntity<?> addBookWithImage(@ModelAttribute BookFormDTO form) {
         try {
+            MultipartFile image = form.getImage();
+            byte[] imageBytes = null;
+
             // Validate image if provided
-            if (imageFile != null && !imageFile.isEmpty()) {
-                String originalFilename = StringUtils.cleanPath(imageFile.getOriginalFilename());
+            if (image != null && !image.isEmpty()) {
+                String originalFilename = StringUtils.cleanPath(image.getOriginalFilename());
 
                 if (originalFilename.contains("..")) {
                     return ResponseEntity.badRequest().body("Invalid file path");
@@ -61,12 +57,18 @@ public class BookController {
                     return ResponseEntity.badRequest().body("Only JPG, JPEG, PNG, GIF files are allowed.");
                 }
 
-                // Convert image to byte array
-                byte[] imageBytes = imageFile.getBytes();
-                bookDTO.setImageUrl(imageBytes);
+                imageBytes = image.getBytes();
             }
 
-            // Save the book
+            // Convert BookFormDTO to BookReqDTO
+            BookReqDTO bookDTO = new BookReqDTO();
+            bookDTO.setTitle(form.getTitle());
+            bookDTO.setAuthor(form.getAuthor());
+            bookDTO.setPrice(form.getPrice());
+            bookDTO.setStock(form.getStock());
+            bookDTO.setCategoryName(form.getCategoryName());
+            bookDTO.setImageUrl(imageBytes); // set image as byte[] for DB
+
             BookRespDTO savedBook = bookService.saveBook(bookDTO);
             return ResponseEntity.ok(savedBook);
 
@@ -77,6 +79,55 @@ public class BookController {
         }
     }
 
+   //UpdateBooK
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateBook(
+            @PathVariable Long id,
+            @ModelAttribute BookFormDTO form) {
+        try {
+            MultipartFile image = form.getImage();
+            byte[] imageBytes = null;
+
+            if (image != null && !image.isEmpty()) {
+                String originalFilename = StringUtils.cleanPath(image.getOriginalFilename());
+
+                if (originalFilename.contains("..")) {
+                    return ResponseEntity.badRequest().body("Invalid file path");
+                }
+
+                String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+                List<String> allowedExtensions = List.of("jpg", "jpeg", "png", "gif");
+
+                if (!allowedExtensions.contains(extension)) {
+                    return ResponseEntity.badRequest().body("Only JPG, JPEG, PNG, GIF files are allowed.");
+                }
+
+                imageBytes = image.getBytes();
+            }
+
+            BookReqDTO bookDTO = new BookReqDTO();
+            bookDTO.setTitle(form.getTitle());
+            bookDTO.setAuthor(form.getAuthor());
+            bookDTO.setPrice(form.getPrice());
+            bookDTO.setStock(form.getStock());
+            bookDTO.setCategoryName(form.getCategoryName());
+            bookDTO.setImageUrl(imageBytes);
+
+            BookRespDTO updatedBook = bookService.updateBook(id, bookDTO);
+            return ResponseEntity.ok(updatedBook);
+
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Error processing image: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating book: " + e.getMessage());
+        }
+    }
+
+
+
+    //deleteBook
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
@@ -84,9 +135,9 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<BookRespDTO>> getBooksByCategory(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(bookService.getBookByCategoryId(categoryId));
+    @GetMapping("/category/{categoryName}")
+    public ResponseEntity<List<BookRespDTO>> getBooksByCategory(@PathVariable String categoryName) {
+        return ResponseEntity.ok(bookService.getBookByCategoryName(categoryName));
     }
 
     @GetMapping("/author")

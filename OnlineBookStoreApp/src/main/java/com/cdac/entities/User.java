@@ -34,18 +34,21 @@ public class User extends BaseEntity implements UserDetails {
 	@Column(name="user_name", length=25)
 	private String userName;
 	
-	@Column(name="full_name", length=25)
+	@Column(name="full_name", length=50)
 	private String fullName;
 	
-	@Column(length=25, unique=true)
+	@Column(length=100, unique=true)
 	private String email;
 	
 	@Column(length=100, nullable=false)
 	private String password;
-	
-	@Enumerated(EnumType.STRING)
-	@Column(name="user_role")
-	private UserRole role;
+
+    @Column(nullable = false)
+    private String mobileNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="user_role", nullable = false)
+    private UserRole userRole;
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonIgnore
@@ -54,7 +57,7 @@ public class User extends BaseEntity implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+		return List.of(new SimpleGrantedAuthority("ROLE_" + this.userRole.name()));
 	}
 
 	@Override

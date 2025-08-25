@@ -11,7 +11,10 @@ public interface BookService {
     BookRespDTO getBookById(Long id);
     BookRespDTO saveBook(BookReqDTO bookDto);
     void deleteBook(Long id);
-    List<BookRespDTO>getBookByCategoryId(Long categoryId);
+    List<BookRespDTO>getBookByCategoryName(String categoryName);
     List<BookRespDTO>getBookByAuthor(String author);
     List<BookRespDTO>searchBookByTitle(String title);
+
+    BookRespDTO updateBook(Long id, BookReqDTO bookDto);
+
 }
