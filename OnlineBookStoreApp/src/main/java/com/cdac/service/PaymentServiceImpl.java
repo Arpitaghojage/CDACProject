@@ -7,9 +7,12 @@ import com.cdac.entities.Order;
 import com.cdac.entities.Payment;
 import com.cdac.repository.OrderRepository;
 import com.cdac.repository.PaymentRepository;
+import com.razorpay.RazorpayClient;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.json.JSONObject;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,12 +20,23 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@AllArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
+
+    @Value("${razorpay.key_id}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key_secret}")
+    private String razorpayKeySecret;
+
+    public PaymentServiceImpl(PaymentRepository paymentRepository, OrderRepository orderRepository, ModelMapper modelMapper) {
+        this.paymentRepository = paymentRepository;
+        this.orderRepository = orderRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public PaymentRespDTO createPayment(PaymentReqDTO paymentDto) {
@@ -65,5 +79,17 @@ public class PaymentServiceImpl implements PaymentService {
                 .stream()
                 .map(payment -> modelMapper.map(payment, PaymentRespDTO.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String createRazorpayOrder(double amount, String currency, String receipt) throws Exception {
+        RazorpayClient client = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", (int)(amount * 100)); // amount in paise
+        orderRequest.put("currency", currency);
+        orderRequest.put("receipt", receipt);
+        orderRequest.put("payment_capture", 1);
+        com.razorpay.Order order = client.orders.create(orderRequest);
+        return order.toString();
     }
 }
