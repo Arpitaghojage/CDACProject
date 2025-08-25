@@ -49,13 +49,15 @@ public class JwtUtils {
                 (User) authentication.getPrincipal();
         System.out.println(userPrincipal.getAuthorities());
         return Jwts.builder()
-                .subject((userPrincipal.getUsername()))
+                // Use email as JWT subject for reliable lookup
+                .subject(userPrincipal.getEmail())
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime()
                         + jwtExpirationMs))
 
-                .claim("authorities",
-                        getAuthoritiesInString(userPrincipal.getAuthorities()))
+                .claim("authorities", getAuthoritiesInString(userPrincipal.getAuthorities()))
+                .claim("userId", userPrincipal.getId())
+                .claim("userName", userPrincipal.getUsername())
 
 
                 .signWith(key, Jwts.SIG.HS256)

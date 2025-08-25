@@ -12,6 +12,7 @@ public class UserRespDTO  extends BaseDTO{
 	private String userName;
 	private String fullName;
 	private String email;
+	private String mobileNumber;
 	private String password;
 	private UserRole role;
 

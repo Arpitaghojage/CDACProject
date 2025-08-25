@@ -19,34 +19,45 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can create
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @PostMapping
     public ResponseEntity<PaymentRespDTO> createPayment(@RequestBody PaymentReqDTO paymentDto) {
         return ResponseEntity.ok(paymentService.createPayment(paymentDto));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @GetMapping("/{id}")
     public ResponseEntity<PaymentRespDTO> getPaymentById(@PathVariable Long id) {
         return ResponseEntity.ok(paymentService.getPaymentById(id));
     }
 
-    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can view all
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<PaymentRespDTO>> getAllPayments() {
         return ResponseEntity.ok(paymentService.getAllPayments());
     }
 
-    @PreAuthorize("hasRole('ADMIN')") // Only ADMIN can delete
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePayment(@PathVariable Long id) {
         paymentService.deletePayment(id);
         return ResponseEntity.ok("Payment deleted successfully.");
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @GetMapping("/status/{status}")
     public ResponseEntity<List<PaymentRespDTO>> getPaymentsByStatus(@PathVariable String status) {
         return ResponseEntity.ok(paymentService.getPaymentsByStatus(status));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
+    @PostMapping("/razorpay-order")
+    public ResponseEntity<String> createRazorpayOrder(@RequestParam double amount, @RequestParam String currency, @RequestParam String receipt) {
+        try {
+            String order = paymentService.createRazorpayOrder(amount, currency, receipt);
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error creating Razorpay order: " + e.getMessage());
+        }
     }
 }
